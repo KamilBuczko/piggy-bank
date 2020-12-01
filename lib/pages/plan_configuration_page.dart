@@ -1,3 +1,4 @@
+import 'package:Skarbonka/utils/forms_validation.dart';
 import 'package:Skarbonka/widgets/date_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -21,84 +22,134 @@ class PlanForm extends StatefulWidget {
 
 class _PlanFormState extends State<PlanForm> {
   final _formKey = GlobalKey<FormState>();
-  final _fieldRequiredText = "Pole jest wymagane";
+  final _distanceBetweenForms = 20.0;
 
   @override
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
-      child: Padding(
-        padding: EdgeInsets.all(15.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            _monthlyIncomeField(),
-            SizedBox(height: 20),
-            _spareGoalField(),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          SectionTitle("Podstawowe dane"),
+          Padding(
+            padding: EdgeInsets.all(15.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                SizedBox(width: 150.0, child: _dateFromField()),
-                SizedBox(width: 150.0, child: _dateToField()),
+                MonthlyIncomeField(),
+                SizedBox(height: _distanceBetweenForms),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    SizedBox(width: 150.0, child: DateFromField()),
+                    SizedBox(width: 150.0, child: DateToField()),
+                  ],
+                ),
+                SizedBox(height: _distanceBetweenForms),
+                SpareGoalField(),
               ],
             ),
-          ],
+          ),
+          SectionTitle("Stałe miesięczne wydatki"),
+          Padding(
+            padding: EdgeInsets.all(15.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+               // ListView()
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SectionTitle extends StatelessWidget {
+
+  final String title;
+
+  SectionTitle(this.title);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 40,
+      width: double.infinity,
+      color: Theme.of(context).primaryColor,
+      child: Padding(
+        padding: EdgeInsets.only(left: 15.0),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            title,
+            style: TextStyle(color: Theme.of(context).primaryColorLight),
+          ),
         ),
       ),
     );
   }
+}
 
-  TextFormField _monthlyIncomeField() {
+class MonthlyIncomeField extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return TextFormField(
       style: TextStyle(fontSize: 17.0),
       decoration: InputDecoration(
           contentPadding: EdgeInsets.all(1.0),
           isDense: true,
-          labelText: 'Miesięczny przychód'),
+          labelText: 'Miesięczny przychód (zł)'),
       keyboardType: TextInputType.number,
-      validator: _fieldRequiredValidator,
+      validator: fieldRequiredValidator,
     );
   }
+}
 
-  TextFormField _spareGoalField() {
+class SpareGoalField extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return TextFormField(
       style: TextStyle(fontSize: 17.0),
       decoration: InputDecoration(
           contentPadding: EdgeInsets.all(1.0),
           isDense: true,
-          labelText: 'Kwota do oszczędzenia'),
+          labelText: 'Kwota do oszczędzenia (zł)'),
       keyboardType: TextInputType.number,
-      validator: _fieldRequiredValidator,
+      validator: fieldRequiredValidator,
     );
   }
+}
 
-  DatePicker _dateFromField() {
+class DateFromField extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     DateTime currentDate = DateTime.now();
     return DatePicker(
       labelText: "Data startu",
       suffixIcon: Icon(Icons.arrow_drop_down, size: 20),
       lastDate: currentDate.add(Duration(days: 366 * 10)),
       firstDate: currentDate,
-      initialDate: currentDate
+      initialDate: currentDate,
+      onDateChanged: (DateTime value) {},
     );
   }
+}
 
-  DatePicker _dateToField() {
+class DateToField extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     DateTime currentDate = DateTime.now();
     return DatePicker(
       labelText: "Data końca",
       suffixIcon: Icon(Icons.arrow_drop_down, size: 20),
       lastDate: currentDate.add(Duration(days: 366 * 10)),
-      initialDate: DateTime(currentDate.year, currentDate.month + 1, currentDate.day),
+      initialDate:
+          DateTime(currentDate.year, currentDate.month + 1, currentDate.day),
       firstDate: currentDate,
+      onDateChanged: (DateTime value) {},
     );
-  }
-
-  String _fieldRequiredValidator(value) {
-    if (value.isEmpty) {
-      return _fieldRequiredText;
-    }
-    return null;
   }
 }

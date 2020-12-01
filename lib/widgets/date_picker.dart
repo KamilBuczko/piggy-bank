@@ -20,11 +20,12 @@ class DatePicker extends StatefulWidget {
     this.focusNode,
     this.dateFormat,
     this.initialDate,
-    this.onDateChanged,
+    @required this.onDateChanged,
     @required this.lastDate,
     @required this.firstDate,
   })  : assert(firstDate != null),
         assert(lastDate != null),
+        assert(onDateChanged != null),
         super(key: key) {
     assert(!this.lastDate.isBefore(this.firstDate),
         'lastDate ${this.lastDate} must be on or after firstDate ${this.firstDate}.');
@@ -54,7 +55,7 @@ class _DatePickerState extends State<DatePicker> {
     if (widget.dateFormat != null) {
       _dateFormat = widget.dateFormat;
     } else {
-      _dateFormat = new DateFormat('dd/MM/yyyy');
+      _dateFormat = new DateFormat('MMM yyyy', "pl");
     }
 
     _selectedDate = widget.initialDate;
@@ -66,7 +67,7 @@ class _DatePickerState extends State<DatePicker> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       focusNode: widget.focusNode,
       controller: _controllerDate,
       style: TextStyle(fontSize: 17.0),
@@ -79,12 +80,16 @@ class _DatePickerState extends State<DatePicker> {
                 child: widget.prefixIcon,
               )
             : widget.prefixIcon,
-        suffixIcon: widget.suffixIcon != null
-            ? Padding(
-                padding: EdgeInsets.only(top: 11.0),
-                  child: widget.suffixIcon
-                )
-            : widget.suffixIcon,
+        suffixIcon: Container(
+          height: 48,
+          width: 48,
+          child: widget.suffixIcon != null
+              ? Padding(
+              padding: EdgeInsets.only(top: 11.0),
+              child: Align(
+                  alignment: Alignment.centerRight, child: widget.suffixIcon))
+              : widget.suffixIcon,
+        ),
         labelText: widget.labelText,
       ),
       onTap: () => _selectDate(context),
@@ -101,6 +106,7 @@ class _DatePickerState extends State<DatePicker> {
   Future<Null> _selectDate(BuildContext context) async {
     final DateTime pickedDate = await showDatePicker(
       context: context,
+      locale: const Locale("pl", "PL"),
       initialDate: _selectedDate,
       firstDate: widget.firstDate,
       lastDate: widget.lastDate,
