@@ -10,8 +10,8 @@ class DatePicker extends StatefulWidget {
   final String labelText;
   final Icon prefixIcon;
   final Icon suffixIcon;
-  final Function(String) validator;
-  TextEditingController controller;
+  final String Function(String) validator;
+  final TextEditingController controller;
 
   DatePicker({
     Key key,
@@ -47,6 +47,7 @@ class DatePicker extends StatefulWidget {
 class _DatePickerState extends State<DatePicker> {
   DateFormat _dateFormat;
   DateTime _selectedDate;
+  TextEditingController _controller;
 
   @override
   void initState() {
@@ -60,9 +61,10 @@ class _DatePickerState extends State<DatePicker> {
 
     _selectedDate = widget.initialDate;
 
-    widget.controller = TextEditingController();
+    _controller =
+        widget.controller == null ? TextEditingController() : widget.controller;
 
-    widget.controller.text =
+    _controller.text =
         _selectedDate != null ? _dateFormat.format(_selectedDate) : null;
   }
 
@@ -70,9 +72,11 @@ class _DatePickerState extends State<DatePicker> {
   Widget build(BuildContext context) {
     return TextFormField(
       focusNode: widget.focusNode,
-      controller: widget.controller,
+      controller: _controller,
       style: TextStyle(fontSize: 17.0),
+      validator: widget.validator,
       decoration: InputDecoration(
+        errorMaxLines: 3,
         isDense: true,
         contentPadding: EdgeInsets.all(1.0),
         prefixIcon: widget.prefixIcon != null
@@ -99,14 +103,6 @@ class _DatePickerState extends State<DatePicker> {
     );
   }
 
-  @override
-  void dispose() {
-    if (widget.controller != null) {
-      widget.controller.dispose();
-    }
-    super.dispose();
-  }
-
   Future<Null> _selectDate(BuildContext context) async {
     final DateTime pickedDate = await showDatePicker(
       context: context,
@@ -118,9 +114,7 @@ class _DatePickerState extends State<DatePicker> {
 
     if (pickedDate != null && pickedDate != _selectedDate) {
       _selectedDate = pickedDate;
-      if (widget.controller != null) {
-        widget.controller.text = _dateFormat.format(_selectedDate);
-      }
+        _controller.text = _dateFormat.format(_selectedDate);
     }
 
     if (widget.focusNode != null) {

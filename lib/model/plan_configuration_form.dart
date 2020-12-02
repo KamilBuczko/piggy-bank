@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class PlanFormControllers {
   BasicDataFormControllers basicData = BasicDataFormControllers();
   List<CyclicExpensesFormControllers> cyclicExpenses = [];
+  List<ExpenseCategoriesFormControllers> expenseCategories = [];
 }
 
 class BasicDataFormControllers {
@@ -17,4 +18,9 @@ class CyclicExpensesFormControllers {
   TextEditingController value = TextEditingController();
   TextEditingController dateFrom = TextEditingController();
   TextEditingController dateTo = TextEditingController();
+}
+
+class ExpenseCategoriesFormControllers {
+  TextEditingController name = TextEditingController();
+  TextEditingController limit = TextEditingController();
 }

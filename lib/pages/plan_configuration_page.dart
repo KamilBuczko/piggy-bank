@@ -1,6 +1,7 @@
 import 'package:Skarbonka/form/form_fields.dart';
 import 'package:Skarbonka/model/plan_configuration_form.dart';
-import 'package:Skarbonka/utils/forms_validation.dart';
+import 'package:Skarbonka/utils/generic_form_validation.dart';
+import 'package:Skarbonka/utils/plan_configuration_form_validation.dart';
 import 'package:flutter/material.dart';
 
 class PlanConfigurationPage extends StatelessWidget {
@@ -11,25 +12,55 @@ class PlanConfigurationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_title),
-      ),
-      body: PlanForm(
-        formKey: _formKey,
-        controllers: planControllers,
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          if (_formKey.currentState.validate()) {
-            // If the form is valid, display a Snackbar.
-            print("GIT");
-          }
-        },
-        label: Text('Zapisz'),
-        icon: Icon(Icons.create),
-        backgroundColor: Theme.of(context).accentColor,
-      ),
+        appBar: AppBar(
+          title: Text(_title),
+        ),
+        body: PlanForm(
+          formKey: _formKey,
+          controllers: planControllers,
+        ),
+        floatingActionButton:
+            FloatingSaveButton(formKey: _formKey, onSave: _savePlan));
+  }
+
+  _savePlan() {
+    return null;
+  }
+}
+
+class FloatingSaveButton extends StatelessWidget {
+  final VoidCallback onSave;
+  final GlobalKey<FormState> formKey;
+
+  FloatingSaveButton({this.formKey, this.onSave});
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton.extended(
+      onPressed: () {
+        if (formKey.currentState.validate()) {
+          onSave.call();
+        } else {
+          _displayErrorSnackBar(context);
+        }
+      },
+      label: Text('Zapisz'),
+      icon: Icon(Icons.create),
+      backgroundColor: Theme.of(context).accentColor,
     );
+  }
+
+  _displayErrorSnackBar(BuildContext context) {
+    final snackBar = SnackBar(
+      content: Text(
+          'Niepoprawne dane. Sprawdź i popraw pola zaznaczone na czerwono',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Theme.of(context).errorColor)),
+      backgroundColor: Theme.of(context).primaryColor,
+    );
+
+    Scaffold.of(context).removeCurrentSnackBar();
+    Scaffold.of(context).showSnackBar(snackBar);
   }
 }
 
@@ -52,7 +83,9 @@ class _PlanFormState extends State<PlanForm> {
         children: <Widget>[
           BasicDataSection(controllers: widget.controllers.basicData),
           CyclicExpensesSection(controllers: widget.controllers),
-          SectionTitle("Kategorie wydatków", onTap: () {})
+          ExpenseCategoriesSection(
+              controllers: widget.controllers.expenseCategories),
+          SizedBox(height: 30.0)
         ],
       ),
     );
@@ -91,6 +124,7 @@ class _BasicDataSectionState extends State<BasicDataSection> {
                 ),
                 SizedBox(height: 20.0),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     SizedBox(
@@ -101,15 +135,18 @@ class _BasicDataSectionState extends State<BasicDataSection> {
                     SizedBox(
                         width: 150.0,
                         child: DateToField(
-                          controller: widget.controllers.dateTo,
-                        )),
+                            controller: widget.controllers.dateTo,
+                            validator: dateRangeValidator(
+                                dateFromController:
+                                    widget.controllers.dateFrom))),
                   ],
                 ),
                 SizedBox(height: 20.0),
                 AppNumberFormField(
-                  label: "Kwota do oszczędzenia",
+                  controller: widget.controllers.spareGoal,
+                  label: "Kwota do oszczędzenia (zł)",
                   validator:
-                      basicValidator(required: true, positiveValue: true),
+                      spareGoalValidator(controllers: widget.controllers),
                 ),
               ],
             ),
@@ -177,16 +214,15 @@ class _CyclicExpensesListState extends State<CyclicExpensesList> {
             ? Padding(
                 padding: EdgeInsets.only(left: 15.0, right: 15.0),
                 child: CyclicExpenseTile(
-                    controllers: widget.controllers.cyclicExpenses[index~/2],
-                    onRemove: () => _removeItem(index~/2)))
+                    controllers: widget.controllers.cyclicExpenses[index ~/ 2],
+                    onRemove: () => _removeItem(index ~/ 2)))
             : Padding(
                 padding: EdgeInsets.only(top: 20.0),
                 child: Divider(
                     thickness: 2, color: Theme.of(context).primaryColor),
               ));
 
-    list.add(Offstage(
-        offstage: false, child: AddCyclicExpenseTile(onPressed: _addItem)));
+    list.add(AddTileButton(onPressed: _addItem));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,8 +231,6 @@ class _CyclicExpensesListState extends State<CyclicExpensesList> {
   }
 
   void _addItem() {
-    widget.controllers.cyclicExpenses.forEach((element) {print(element.dateTo.text); });
-
     setState(() {
       _itemsCount += 1;
       widget.controllers.cyclicExpenses.add(CyclicExpensesFormControllers());
@@ -206,15 +240,15 @@ class _CyclicExpensesListState extends State<CyclicExpensesList> {
   void _removeItem(int index) {
     setState(() {
       _itemsCount -= 1;
-      widget.controllers.cyclicExpenses.removeAt(index.toInt());
+      widget.controllers.cyclicExpenses.removeAt(index);
     });
   }
 }
 
-class AddCyclicExpenseTile extends StatelessWidget {
+class AddTileButton extends StatelessWidget {
   final VoidCallback onPressed;
 
-  AddCyclicExpenseTile({this.onPressed});
+  AddTileButton({this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -282,6 +316,7 @@ class _CyclicExpenseTileState extends State<CyclicExpenseTile> {
         ),
         SizedBox(height: 20.0),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             SizedBox(
@@ -293,6 +328,8 @@ class _CyclicExpenseTileState extends State<CyclicExpenseTile> {
                 width: 150.0,
                 child: DateToField(
                   controller: widget.controllers.dateTo,
+                  validator: dateRangeValidator(
+                      dateFromController: widget.controllers.dateFrom),
                 )),
           ],
         ),
@@ -348,6 +385,140 @@ class _SectionTitleState extends State<SectionTitle> {
   }
 }
 
+class ExpenseCategoriesSection extends StatefulWidget {
+  final List<ExpenseCategoriesFormControllers> controllers;
+
+  ExpenseCategoriesSection({this.controllers});
+
+  @override
+  _ExpenseCategoriesSectionState createState() =>
+      _ExpenseCategoriesSectionState();
+}
+
+class _ExpenseCategoriesSectionState extends State<ExpenseCategoriesSection> {
+  bool _minimized = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SectionTitle("Kategorie wydatków", onTap: _toggleMinimization),
+        Offstage(
+            offstage: _minimized,
+            child: ExpenseCategoriesList(controllers: widget.controllers))
+      ],
+    );
+  }
+
+  void _toggleMinimization() {
+    setState(() {
+      _minimized = !_minimized;
+    });
+  }
+}
+
+class ExpenseCategoriesList extends StatefulWidget {
+  final List<ExpenseCategoriesFormControllers> controllers;
+
+  ExpenseCategoriesList({this.controllers});
+
+  @override
+  _ExpenseCategoriesListState createState() => _ExpenseCategoriesListState();
+}
+
+class _ExpenseCategoriesListState extends State<ExpenseCategoriesList> {
+  int _itemsCount = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> list = List.generate(
+        _itemsCount * 2,
+        (index) => index.isEven
+            ? Padding(
+                padding: EdgeInsets.only(left: 15.0, right: 15.0),
+                child: ExpenseCategoryTile(
+                    controllers: widget.controllers[index ~/ 2],
+                    onRemove: () => _removeItem(index ~/ 2)))
+            : Padding(
+                padding: EdgeInsets.only(top: 20.0),
+                child: Divider(
+                    thickness: 2, color: Theme.of(context).primaryColor),
+              ));
+
+    list.add(AddTileButton(onPressed: _addItem));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: list,
+    );
+  }
+
+  void _addItem() {
+    setState(() {
+      _itemsCount += 1;
+      widget.controllers.add(ExpenseCategoriesFormControllers());
+    });
+  }
+
+  void _removeItem(int index) {
+    setState(() {
+      _itemsCount -= 1;
+      widget.controllers.removeAt(index);
+    });
+  }
+}
+
+class ExpenseCategoryTile extends StatefulWidget {
+  final VoidCallback onRemove;
+  final ExpenseCategoriesFormControllers controllers;
+
+  ExpenseCategoryTile({this.controllers, this.onRemove});
+
+  @override
+  _ExpenseCategoryTileState createState() => _ExpenseCategoryTileState();
+}
+
+class _ExpenseCategoryTileState extends State<ExpenseCategoryTile> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            SizedBox(
+              width: 250.0,
+              child: AppTextFormField(
+                controller: widget.controllers.name,
+                label: "Nazwa",
+                validator: basicValidator(required: true),
+              ),
+            ),
+            IconButton(
+                padding: EdgeInsets.zero,
+                icon: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Icon(
+                      Icons.delete,
+                      color: Theme.of(context).errorColor,
+                      size: 30,
+                    )),
+                onPressed: () => widget.onRemove.call())
+          ],
+        ),
+        SizedBox(height: 20.0),
+        AppNumberFormField(
+          controller: widget.controllers.limit,
+          label: "Limit (zł)",
+          helperText: "Puste pole oznacza brak limitu",
+          validator: basicValidator(positiveValue: true),
+        ),
+      ],
+    );
+  }
+}
+
 class DateFromField extends StatelessWidget {
   final TextEditingController controller;
 
@@ -368,8 +539,9 @@ class DateFromField extends StatelessWidget {
 
 class DateToField extends StatelessWidget {
   final TextEditingController controller;
+  final String Function(String) validator;
 
-  DateToField({this.controller});
+  DateToField({this.controller, this.validator});
 
   @override
   Widget build(BuildContext context) {
@@ -381,6 +553,7 @@ class DateToField extends StatelessWidget {
       initialDate:
           DateTime(currentDate.year, currentDate.month + 1, currentDate.day),
       firstDate: currentDate,
+      validator: validator,
     );
   }
 }
