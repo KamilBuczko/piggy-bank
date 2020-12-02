@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class DatePicker extends StatefulWidget {
-  final ValueChanged<DateTime> onDateChanged;
   final DateTime initialDate;
   final DateTime firstDate;
   final DateTime lastDate;
@@ -11,21 +10,23 @@ class DatePicker extends StatefulWidget {
   final String labelText;
   final Icon prefixIcon;
   final Icon suffixIcon;
+  final Function(String) validator;
+  TextEditingController controller;
 
   DatePicker({
     Key key,
+    this.controller,
     this.labelText,
     this.prefixIcon,
     this.suffixIcon,
     this.focusNode,
     this.dateFormat,
     this.initialDate,
-    @required this.onDateChanged,
+    this.validator,
     @required this.lastDate,
     @required this.firstDate,
   })  : assert(firstDate != null),
         assert(lastDate != null),
-        assert(onDateChanged != null),
         super(key: key) {
     assert(!this.lastDate.isBefore(this.firstDate),
         'lastDate ${this.lastDate} must be on or after firstDate ${this.firstDate}.');
@@ -44,7 +45,6 @@ class DatePicker extends StatefulWidget {
 }
 
 class _DatePickerState extends State<DatePicker> {
-  TextEditingController _controllerDate;
   DateFormat _dateFormat;
   DateTime _selectedDate;
 
@@ -60,8 +60,9 @@ class _DatePickerState extends State<DatePicker> {
 
     _selectedDate = widget.initialDate;
 
-    _controllerDate = TextEditingController();
-    _controllerDate.text =
+    widget.controller = TextEditingController();
+
+    widget.controller.text =
         _selectedDate != null ? _dateFormat.format(_selectedDate) : null;
   }
 
@@ -69,7 +70,7 @@ class _DatePickerState extends State<DatePicker> {
   Widget build(BuildContext context) {
     return TextFormField(
       focusNode: widget.focusNode,
-      controller: _controllerDate,
+      controller: widget.controller,
       style: TextStyle(fontSize: 17.0),
       decoration: InputDecoration(
         isDense: true,
@@ -85,9 +86,10 @@ class _DatePickerState extends State<DatePicker> {
           width: 48,
           child: widget.suffixIcon != null
               ? Padding(
-              padding: EdgeInsets.only(top: 11.0),
-              child: Align(
-                  alignment: Alignment.centerRight, child: widget.suffixIcon))
+                  padding: EdgeInsets.only(top: 11.0),
+                  child: Align(
+                      alignment: Alignment.centerRight,
+                      child: widget.suffixIcon))
               : widget.suffixIcon,
         ),
         labelText: widget.labelText,
@@ -99,7 +101,9 @@ class _DatePickerState extends State<DatePicker> {
 
   @override
   void dispose() {
-    _controllerDate.dispose();
+    if (widget.controller != null) {
+      widget.controller.dispose();
+    }
     super.dispose();
   }
 
@@ -114,8 +118,9 @@ class _DatePickerState extends State<DatePicker> {
 
     if (pickedDate != null && pickedDate != _selectedDate) {
       _selectedDate = pickedDate;
-      _controllerDate.text = _dateFormat.format(_selectedDate);
-      widget.onDateChanged(_selectedDate);
+      if (widget.controller != null) {
+        widget.controller.text = _dateFormat.format(_selectedDate);
+      }
     }
 
     if (widget.focusNode != null) {

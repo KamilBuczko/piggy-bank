@@ -20,23 +20,18 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ButtonTheme(
-              minWidth: 200.0,
-              height: 50.0,
-              child: RaisedButton(
-                onPressed: () => navigateTo(context, AppRoute.PLAN_CONFIGURATION),
-                textTheme: ButtonTextTheme.primary,
-                color: Theme.of(context).primaryColor,
-                child: Text(
-                  'Zacznij oszczędzać!',
-                  style: TextStyle(fontSize: 20.0),
-                ),
-              ),
+        child: ButtonTheme(
+          minWidth: 200.0,
+          height: 50.0,
+          child: RaisedButton(
+            onPressed: () => navigateTo(context, AppRoute.PLAN_CONFIGURATION),
+            textTheme: ButtonTextTheme.primary,
+            color: Theme.of(context).primaryColor,
+            child: Text(
+              'Zacznij oszczędzać!',
+              style: TextStyle(fontSize: 20.0),
             ),
-          ],
+          ),
         ),
       ),
     );
