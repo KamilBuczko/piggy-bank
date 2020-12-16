@@ -1,7 +1,6 @@
-import 'package:Skarbonka/model/plan_configuration_form.dart';
-import 'package:Skarbonka/utils/date_formatter.dart';
+import 'package:skarbonka/model/plan_configuration_form.dart';
+import 'package:skarbonka/utils/date_utils.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:intl/intl.dart';
 
 final _invalidDateRangeText = "Data końca musi następować po dacie startu";
 final _spareGoalOutOfRangeText = "Wartośc zbyt duża dla podanego przychodu i zakresu dat";
@@ -15,7 +14,7 @@ Function(String) dateRangeValidator(
     DateTime parsedDateFrom = toDateTime(dateFromController.text);
     DateTime parsedDateTo = toDateTime(dateTo);
     
-    int monthDiff = _getDatesMonthDiff(parsedDateFrom, parsedDateTo);
+    int monthDiff = getDatesMonthDiff(parsedDateFrom, parsedDateTo);
 
     if (monthDiff <= 0) {
       return _invalidDateRangeText;
@@ -41,9 +40,9 @@ Function(String) spareGoalValidator(
       return null;
     }
 
-   int monthsDiff = _getDatesMonthDiff(dateFrom, dateTo);
+   int monthsDiff = getDatesMonthDiff(dateFrom, dateTo);
     
-    if (monthsDiff * int.parse(monthlyIncome) < int.parse(spareGoal)) {
+    if (monthsDiff * double.parse(monthlyIncome) < double.parse(spareGoal)) {
       return _spareGoalOutOfRangeText;
     }
     
@@ -52,9 +51,3 @@ Function(String) spareGoalValidator(
 }
 
 
-int _getDatesMonthDiff(DateTime dateFrom, DateTime dateTo) {
-  int yearDiff = dateTo.year - dateFrom.year;
-  int monthDiff = dateTo.month - dateFrom.month + yearDiff * 12;
-  
-  return monthDiff;
-}

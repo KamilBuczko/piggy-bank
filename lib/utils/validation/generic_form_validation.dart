@@ -9,11 +9,11 @@ Function(String) basicValidator({bool required=false, bool positiveValue=false, 
       return _fieldRequiredText;
     }
 
-    if (positiveValue && (value.isNotEmpty && int.parse(value) <= 0)) {
+    if (positiveValue && (value.isNotEmpty && double.parse(value) <= 0)) {
       return _nonPositiveValueText;
     }
 
-    if (positiveValue && (value.isNotEmpty && int.parse(value) < 0)) {
+    if (positiveValue && (value.isNotEmpty && double.parse(value) < 0)) {
       return _negativeValueText;
     }
 

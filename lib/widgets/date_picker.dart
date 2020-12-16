@@ -34,10 +34,6 @@ class DatePicker extends StatefulWidget {
         initialDate == null ||
             (initialDate != null && !this.initialDate.isBefore(this.firstDate)),
         'initialDate ${this.initialDate} must be on or after firstDate ${this.firstDate}.');
-    assert(
-        initialDate == null ||
-            (initialDate != null && !this.initialDate.isAfter(this.lastDate)),
-        'initialDate ${this.initialDate} must be on or before lastDate ${this.lastDate}.');
   }
 
   @override
